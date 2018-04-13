@@ -49,6 +49,7 @@ class Outter(implicit p: Parameters) extends CoreModule()(p) {
         }.otherwise{
           /// 计数值回零，重置矩阵
           aindex := UInt(0)
+          /// 读取哈希值
           sha3_init := true
           //这里还应该把sha3_init输入
           state := s_squeeze
@@ -64,7 +65,6 @@ class Outter(implicit p: Parameters) extends CoreModule()(p) {
       state := s_idle
       when(!io.kill){
         sha3_init := false
-        ///还有一步是接输出
         io.valid := true
       }.otherwise{
         io.valid := false
