@@ -26,28 +26,51 @@ class Outter(implicit p: Parameters) extends CoreModule()(p) {
     val busy  = Bool(OUTPUT)
   }
 
-  val cst =  UInt("b111")
-  val round = 24
-  val i = UInt()
+  val sha3_init = Reg(init=Bool(false))
+  val aindex = Reg(init = UInt(0,5))
 
-  when(io.ready && !io.kill){
-    for (i <- 0 until round) {
-      io.out := Cat(io.in0, io.in1) ^ cst
+  val s_idle:: s_absorb :: s_squeeze :: Nil = Enum(UInt(), 3)
+  val state = Reg(init=s_idle)
+
+  switch(state){
+    is(s_idle){
+      when(io.ready && !io.busy){
+        /// 进入吸收阶段，设为忙
+        io.valid := false
+        io.busy := true
+        state := s_absorb
+      }
+    }
+    is(s_absorb){
+      when(!io.kill){
+        when(aindex < UInt(24)){
+          /// 计算，每一轮的常数不同，好像是和索引对应。输入数据和索引
+          aindex := aindex + UInt(1)
+        }.otherwise{
+          /// 计数值回零，重置矩阵
+          aindex := UInt(0)
+          sha3_init := true
+          //这里还应该把sha3_init输入
+          state := s_squeeze
+        }
+      }.otherwise{
+        io.valid := false
+        io.busy := false
+        state := s_idle
+      }
+    }
+    is(s_squeeze){
+      io.busy := false
+      state := s_idle
+      when(!io.kill){
+        sha3_init := false
+        ///还有一步是接输出
+        io.valid := true
+      }.otherwise{
+        io.valid := false
+      }
     }
   }
 
-  when(io.kill){
-    io.out := 0
-    io.valid := 0
-    io.busy := 0
-  }
-
-  if (i == round){
-    io.valid := 1
-    io.busy := 0
-  }else{
-    io.valid := 0
-    io.busy := 1
-  }
-
 }
+
