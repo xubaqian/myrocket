@@ -15,7 +15,7 @@ import util._
 import Chisel.ImplicitConversions._
 import config._
 
-class Sha3Module(implicit p: Parameters) extends Module {
+class Sha3Module(implicit p: Parameters) extends CoreModule {
   //constants
   val W = 64
   val S = 1
@@ -29,24 +29,40 @@ class Sha3Module(implicit p: Parameters) extends Module {
   val io = new Bundle { 
     val absorb = Bool(INPUT)
     val init   = Bool(INPUT)
-    val write  = Bool(INPUT)
     val round  = UInt(INPUT,width=5)
-    val stage  = UInt(INPUT,width=log2Up(S))
     val aindex = UInt(INPUT,width=log2Up(round_size_words))
     val message_in = Bits(INPUT, width = W)
-    val hash_out = Vec.fill(hash_size_words){Bits(OUTPUT, width = W)}
+    //val hash_out = Vec.fill(hash_size_words){Bits(OUTPUT, width = W)}
+    val hash_out = Vec(25, Bits(OUTPUT, W ))
+    //val hash_out = UInt(OUTPUT, W)
+    //val hash_out = Vec(hash_size_words, UInt(OUTPUT, width = W))
+
   }
+  //val state = Vec.fill(5*5){Reg(init = Bits(0, width = W))}
 
-  val state = Vec.fill(5*5){Reg(init = Bits(0, width = W))}
+  /**val state = Vec.fill(5*5){Reg(init = Bits(0, width = W))}
 
+  println("\n\n\nMy sha3:\n"
+    + io.absorb + "\n"
+    + io.init   + "\n"
+    + io.round  + "\n"
+    + io.aindex + "\n"
+    + io.message_in + "\n"
+    + io.hash_out + "\n"
+    + state     + "\n"
+    + "\n\n")*/
   //submodules
+
+  //println("\n\n\nSha3_RhoPi:" + rhopi.state_i + "\n" + rhopi.state_o + "\n\n\n")
+
+  /**
   val theta = Module(new ThetaModule(W)).io
   val rhopi = Module(new RhoPiModule(W)).io
   val chi   = Module(new ChiModule(W)).io
   val iota  = Module(new IotaModule(W))
 
   //default
-  theta.state_i := Vec.fill(25){Bits(0,W)}
+  //theta.state_i := Vec.fill(25){Bits(0,W)}
   iota.io.round     := UInt(0)
 
   //connect submodules to each other
@@ -57,57 +73,10 @@ class Sha3Module(implicit p: Parameters) extends Module {
       iota.io.state_i  <> chi.state_o
       state         := iota.io.state_o
     }
-    if(S == 2){
-      //stage 1
-      theta.state_i := state
-      rhopi.state_i <> theta.state_o
-      
-      //stage 2
-      chi.state_i   := state
-      iota.io.state_i  <> chi.state_o
-    }
-    if(S == 4){
-      //stage 1
-      theta.state_i := state
-      //stage 2
-      rhopi.state_i := state
-      //stage 3
-      chi.state_i   := state
-      //stage 3
-      iota.io.state_i  := state
-  }
+
 
   iota.io.round    := io.round
-  
-  //try moving mux out
-  switch(io.stage){
-      is(UInt(0)){
-        if(S == 1){
-          state := iota.io.state_o
-        }else if(S == 2){
-          state := rhopi.state_o
-        }else if(S == 4){
-          state := theta.state_o
-        }
-      }
-      is(UInt(1)){
-        if(S == 2){
-          state := iota.io.state_o
-        }else if(S == 4){
-          state := rhopi.state_o
-        }
-      }
-      is(UInt(2)){
-        if(S == 4){
-          state := chi.state_o
-        }
-      }
-      is(UInt(3)){
-        if(S == 4){
-          state := iota.io.state_o
-        }
-      }
-  }
+
 
   when(io.absorb){
     state := state
@@ -122,17 +91,9 @@ class Sha3Module(implicit p: Parameters) extends Module {
     io.hash_out(i) := state(i*5)
   }
 
-  //keep state from changing while we write
-  when(io.write){
-    state := state
-  }
-
   //initialize state to 0 for new hashes or at reset
   when(io.init){
     state := Vec.fill(5*5){Bits(0, width = W)}
   }
-
-  when(reset){
-    state := Vec.fill(5*5){Bits(0, width = W)}
-  }
+*/
 }
