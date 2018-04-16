@@ -328,45 +328,27 @@ class Rocket(implicit p: Parameters) extends CoreModule()(p) {
   div.io.req.bits.tag := ex_waddr
 
     // hash module
-  val outter = Module(new Outter)
+  /**
+  val Sha3 = Module(new Sha3)
   val oin0 = Reg(UInt(width = 64))
   val oin1 = Reg(UInt(width = 64))
   val oready = Reg(Bool())
   val okill = Reg(Bool())
-  outter.io.in0 := oin0
-  outter.io.in1 := oin1
-  outter.io.ready := oready
-  outter.io.kill := okill
+  Sha3.io.in0 := oin0
+  Sha3.io.in1 := oin1
+  Sha3.io.ready := oready
+  Sha3.io.kill := okill
 
   val oout = Reg(UInt())
   val ovalid = Reg(Bool())
   val obusy  = Reg(Bool())
-  oout := outter.io.out
-  ovalid := outter.io.valid
-  obusy := outter.io.busy
+  oout := Sha3.io.out
+  ovalid := Sha3.io.valid
+  obusy := Sha3.io.busy
 
   //val sha3 = Module(new Sha3Module)
   //val myreg = Vec.fill(5*5){Bits(width = 64)}
-  //val myreg =  Reg(UInt())
   //val myreg = Reg(Vec(25, Bits(width = 64)))
-  //myreg <> sha3.io.hash_out
-  /**
-  println("\n\n\nSha3 Module:\n"
-    + sha3.io.hash_out + "\n"
-    + myreg   + "\n"
-    + "\n\n")
-*/
-
-
-
-  /**
-  sha3.io.absorb := UInt(1)
-  sha3.io.init   := UInt(1)
-  sha3.io.write  := UInt(1)
-  sha3.io.stage  := UInt(1)
-  sha3.io.round  := UInt(31)
-  sha3.io.aindex := UInt(31)
-  sha3.io.message_in := ex_rs(0)
 */
 
   ex_reg_valid := !ctrl_killd
